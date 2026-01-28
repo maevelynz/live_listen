@@ -1,24 +1,41 @@
-# Launch Checklist
+# Launch checklist
 
-## Staging Smoke Tests
+## Staging smoke tests
 
-- [ ] Web app loads at staging URL without errors.
-- [ ] API health check returns 200 (GET `/health`).
-- [ ] User can register and receive a token.
-- [ ] Create room succeeds and invite code is displayed.
-- [ ] Join room with invite code succeeds.
-- [ ] Presence list updates when a second user joins.
-- [ ] Chat messages send and receive in realtime.
-- [ ] Playback state syncs between two clients.
-- [ ] CORS and Socket.IO CORS allow staging web origin only.
+1. **Health check**
+   - `GET /health` returns `200` with `{ ok: true }`.
+2. **Auth**
+   - Register a user and receive a token.
+3. **Rooms**
+   - Create a room, then join it with a second user.
+4. **Chat**
+   - Send and receive realtime chat messages.
+5. **Playback sync**
+   - Host updates playback state; participants see updates.
+6. **Presence**
+   - Join/leave updates presence list.
+7. **CORS/Socket**
+   - No CORS errors from the staging web domain.
+8. **Logs**
+   - Verify API logs contain structured request info.
 
-## Production Gates
+## Production launch gates
 
-- [ ] All staging smoke tests pass within 24 hours.
-- [ ] Production secrets set in hosting provider (no plaintext files).
-- [ ] Database backups enabled and verified.
-- [ ] Error monitoring configured (logs, alerting, uptime checks).
-- [ ] Rate limits configured for production traffic.
-- [ ] Rollback plan verified (previous build redeploy).
-- [ ] GDPR/CCPA considerations reviewed (data retention and deletion).
-- [ ] Launch communication plan approved.
+### Product readiness
+- All staging smoke tests are green.
+- Error tracking configured (Sentry or equivalent).
+- Rate limits configured for prod traffic.
+
+### Security
+- Secrets stored in managed secret managers (no plain text in CI).
+- JWT signing secret rotated and documented.
+- DB access restricted by IP or private networking.
+
+### Data & migrations
+- Migration plan reviewed and backed up.
+- Rollback plan approved and rehearsed.
+
+### Ops
+- Dashboard for API uptime + latency.
+- Log retention configured.
+- On-call rotation and escalation defined.

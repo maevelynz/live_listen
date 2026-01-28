@@ -1,64 +1,62 @@
 # Environments
 
-This document defines how LiveListen environments are separated, configured, and deployed.
+This document defines the environment strategy for LiveListen across local, staging, and production.
 
-## Environment Matrix
+## Environment matrix
 
-| Environment | `APP_ENV` | `NEXT_PUBLIC_APP_ENV` | Base Web URL | Base API URL | Notes |
-| --- | --- | --- | --- | --- | --- |
-| Local | `local` | `local` | `http://localhost:3000` | `http://localhost:3001` | Local dev via docker compose + npm scripts. |
-| Staging | `staging` | `staging` | `https://staging.live-listen.example.com` | `https://api.staging.live-listen.example.com` | Pre-prod validation with production-like config. |
-| Production | `production` | `production` | `https://live-listen.example.com` | `https://api.live-listen.example.com` | Customer-facing environment. |
+| Environment | APP_ENV | Web URL | API URL | DB | Secrets handling | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| Local | `local` | http://localhost:3000 | http://localhost:3001 | Local Postgres (docker compose) | `.env` files committed as examples only | Single developer machine, no shared data |
+| Staging | `staging` | https://staging.live-listen.app | https://api-staging.live-listen.app | Managed Postgres (staging cluster) | Managed secrets (Vercel/Fly/Render) | Mirrors prod settings with non-prod data |
+| Production | `production` | https://live-listen.app | https://api.live-listen.app | Managed Postgres (prod cluster) | Managed secrets with rotation | Customer data, strict change control |
 
-## URLs and Routing
+## Required configuration
 
-- Web app should target the API URL via `NEXT_PUBLIC_API_URL` and the Socket URL via `NEXT_PUBLIC_WS_URL`.
-- API should enforce CORS based on `CORS_ORIGIN` and Socket.IO CORS based on `SOCKET_IO_CORS_ORIGIN`.
+### Shared
+- `APP_ENV`: `local`, `staging`, or `production`.
 
-## Secrets and Configuration
+### API
+- `PORT`: API server port.
+- `DATABASE_URL`: Postgres connection string.
+- `CORS_ORIGIN`: Comma-separated list of allowed web origins.
+- `SOCKET_IO_CORS_ORIGIN`: Allowed Socket.IO origins (same as web origins).
+- `LOG_LEVEL`: `debug`, `info`, `warn`, `error`.
+- `JWT_SECRET`: Secret used to sign auth tokens.
+- `RATE_LIMIT_WINDOW_MS`: Rate limit window.
+- `RATE_LIMIT_MAX`: Max requests per window.
 
-**Required secrets per environment:**
+### Web
+- `NEXT_PUBLIC_API_URL`: API base URL.
+- `NEXT_PUBLIC_WS_URL`: WebSocket/Socket.IO base URL.
+- `NEXT_PUBLIC_APP_ENV`: `local`, `staging`, or `production` (publicly exposed).
 
-- API:
-  - `DATABASE_URL`
-  - `JWT_SECRET`
-  - `CORS_ORIGIN`
-  - `SOCKET_IO_CORS_ORIGIN`
-  - `LOG_LEVEL`
-  - `RATE_LIMIT_*` (if enabled)
-- Web:
-  - `NEXT_PUBLIC_API_URL`
-  - `NEXT_PUBLIC_WS_URL`
-  - `NEXT_PUBLIC_APP_ENV`
+## Secrets management
 
-**Secret handling principles:**
+- Local: use `.env` files (never commit real secrets).
+- Staging/Production: store secrets in platform secret managers (Vercel, Fly, Render).
+- Rotate `JWT_SECRET` and DB passwords on a regular schedule.
 
-- Never commit secrets to the repo.
-- Local dev uses `.env` files, while staging/prod use managed secret stores (Vercel/Fly/Render/etc).
-- Rotate secrets per environment; do not reuse production credentials in staging.
+## Database separation
 
-## Database Separation
+- Local DB is disposable and should never connect to staging or production.
+- Staging and production use distinct managed Postgres clusters.
+- Avoid cross-environment access: firewalls and credentials must be isolated.
 
-- Each environment has its own isolated Postgres instance.
-- Never share data between staging and production.
-- Local dev uses docker compose Postgres with disposable data.
-- Staging and production use managed Postgres with backups enabled.
+## Deploy triggers
 
-## Deploy Triggers
-
-- **Local:** `npm run dev` per app.
-- **Staging:** merge to `main` (or `develop`) triggers staging deployment.
-- **Production:** tagged release (e.g., `vX.Y.Z`) or manual promote from staging.
+- Local: manual `npm run dev`.
+- Staging: deploy from the `main` branch when the staging release flag is enabled, or via a dedicated `staging` branch.
+- Production: deploy from tagged releases (e.g., `v1.2.0`).
 
 ## Migrations
 
-- Migrations run automatically in staging and production before app start (CI/CD step).
-- Local dev can run migrations on startup or via a `npm run db:migrate` script.
-- Use a one-way migration strategy; no destructive changes without a backwards-compatible plan.
+- Local: apply migrations on startup or via a migration script.
+- Staging: run migrations in CI/CD before deploying the API.
+- Production: run migrations as a separate, audited step before the deploy.
 
-## Rollback Strategy
+## Rollback
 
-- **Web:** rollback by redeploying the previous build (Vercel/Fly/Render rollback).
-- **API:** rollback by redeploying the last known good container/image.
-- **DB:** restore from backups; use forward-only migrations with rollback scripts where possible.
-- If a migration is unsafe to rollback, deploy a compatibility patch first, then migrate.
+- Web: rollback to the last successful deployment (Vercel “Instant Rollback”).
+- API: redeploy the previous container image or release.
+- DB: only roll back schema when safe; prefer forward-only migrations with toggles.
+- Always capture logs/metrics before rollback to preserve incident context.

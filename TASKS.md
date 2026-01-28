@@ -1,27 +1,30 @@
-# Tasks
+# TASKS
+
+This task list coordinates multi-agent work. All agents must remain environment-aware and use `APP_ENV` / `NEXT_PUBLIC_APP_ENV` as defined in `docs/environments.md`.
 
 ## Agent 1 (Orchestrator)
-- Ensure docs and environment templates cover `local`, `staging`, and `production`.
-- Confirm any new configuration references `APP_ENV` and `NEXT_PUBLIC_APP_ENV`.
+- Provide environment documentation and templates.
+- Ensure all docs include `local`, `staging`, `production` guidance.
 
 ## Agent 2 (Backend + Realtime)
-- Use `APP_ENV` to guard local-only behavior (e.g., auto-migrations).
-- Respect `CORS_ORIGIN` and `SOCKET_IO_CORS_ORIGIN` per environment.
-- Keep API base URLs and ports configurable via env.
+- Respect `APP_ENV` for local-only bootstrapping logic.
+- Use CORS + Socket.IO origins that map to environment URLs.
+- Do not hardcode environment-specific URLs; always use env vars.
 
 ## Agent 3 (Frontend)
-- Read `NEXT_PUBLIC_APP_ENV` to display environment banners when needed.
-- Use `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL` for all network calls.
-- Never hardcode localhost URLs in production paths.
+- Read `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_WS_URL` at runtime.
+- Show a subtle staging banner when `NEXT_PUBLIC_APP_ENV=staging`.
+- Avoid production-only behavior in local/staging builds.
 
 ## Agent 4 (Infra/DevOps)
-- Provide environment-specific templates and CI/CD for staging and production.
-- Ensure secrets are stored outside the repo and rotated per environment.
+- Maintain separate staging/prod deployments with isolated secrets and DBs.
+- CI/CD must validate environment variables for each target.
+- Provide rollback guidance for each environment.
 
 ## Agent 5 (UX/UI)
-- Include staging/production UI considerations (banners, labels, and safe defaults).
-- Document UX differences between staging and production in design specs.
+- Document environment-aware UI states (e.g., staging ribbon).
+- Ensure UX flows explicitly call out staging vs prod differences.
 
 ## Agent 6 (Safety/Trust)
-- Note environment impacts on logging, retention, and monitoring.
-- Ensure moderation tooling is clearly scoped per environment.
+- Define moderation and logging requirements per environment.
+- Ensure staging/testing data never mixes with production data.

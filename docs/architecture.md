@@ -1,20 +1,30 @@
 # Architecture
 
-LiveListen consists of a Next.js web app and a Node/Express API with Socket.IO.
+LiveListen is a web app for shared listening rooms with realtime chat and playback sync.
 
-## Environment Configuration Strategy
+## High-level overview
 
-- `APP_ENV` (API/server) defines runtime environment: `local`, `staging`, `production`.
-- `NEXT_PUBLIC_APP_ENV` (web) exposes the runtime environment to the client for UI banners or feature gating.
-- API reads `CORS_ORIGIN` and `SOCKET_IO_CORS_ORIGIN` per environment to restrict access.
-- Web reads `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL` to route requests to the correct environment.
+- **Web**: Next.js application (UI, auth, room management).
+- **API**: Node/Express API with Socket.IO for realtime events.
+- **Database**: Postgres for persistent data (users, rooms, messages, playback state).
 
-**Local defaults**
+## Environment configuration strategy
 
-- Web: `http://localhost:3000`
-- API: `http://localhost:3001`
+The app uses explicit environment flags and public build-time variables.
 
-**Staging/Production**
+### Server (API)
+- `APP_ENV` controls server behavior: `local`, `staging`, or `production`.
+- Environment-specific config (DB, CORS, logging) is provided via env vars.
 
-- Environment variables are provided by the deployment platform.
-- Never commit `.env` files with secrets to the repo.
+### Client (Web)
+- `NEXT_PUBLIC_APP_ENV` is exposed to the browser and should mirror `APP_ENV`.
+- Public URLs are injected via `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL`.
+- The client must not rely on server-only env vars.
+
+### Example mapping
+
+| Environment | APP_ENV | NEXT_PUBLIC_APP_ENV |
+| --- | --- | --- |
+| Local | `local` | `local` |
+| Staging | `staging` | `staging` |
+| Production | `production` | `production` |
