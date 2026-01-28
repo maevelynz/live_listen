@@ -1,0 +1,8 @@
+{
+  "name": "livelisten",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
