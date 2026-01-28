@@ -2,36 +2,31 @@
 
 ## Staging smoke tests
 
-Run after each staging deploy:
+Run these after each staging deploy:
 
-- ✅ API health: `GET /health` returns `{ ok: true, env: "staging" }`.
-- ✅ Auth: register/login flow works.
-- ✅ Room flow: create room, join by invite, list rooms.
-- ✅ Chat: send and receive realtime messages between two sessions.
-- ✅ Playback sync: host updates propagate to participants.
-- ✅ CORS: no browser console errors when connecting to API/Socket.
-- ✅ DB: write/read operations for rooms and messages succeed.
+1. **Health check**: `GET /health` returns `{ ok: true }`.
+2. **Auth**: register a user and receive a token.
+3. **Rooms**: create a room, join by invite code, list rooms.
+4. **Realtime**: open two browsers and verify:
+   - presence updates
+   - chat messages propagate
+   - playback state syncs
+5. **CORS/WS**: no CORS errors in browser console.
+6. **DB**: verify tables exist and data persists after restart.
 
 ## Production gates
 
 Must be satisfied before production release:
 
-### Release readiness
+- ✅ Staging smoke tests pass.
+- ✅ Production environment variables validated (APP_ENV, DB, JWT).
+- ✅ Database backups enabled and verified.
+- ✅ Observability configured (logs + alerts).
+- ✅ Rollback plan reviewed and tested.
+- ✅ Stakeholders sign off.
 
-- ✅ All staging smoke tests pass.
-- ✅ Release notes written and reviewed.
-- ✅ Monitoring/alerting configured (health checks + error rate).
-- ✅ Backup and PITR confirmed for production database.
+## Post-release verification
 
-### Security & compliance
-
-- ✅ Secrets stored in the production secret manager.
-- ✅ CORS locked down to production web origin.
-- ✅ Rate limiting enabled.
-- ✅ Data retention policy documented and approved.
-
-### Rollback readiness
-
-- ✅ Prior release artifacts are available.
-- ✅ Rollback playbook is current and tested.
-- ✅ On-call owner assigned for release window.
+- Run production smoke tests (read-only where possible).
+- Monitor logs and error rates for at least 30 minutes.
+- Confirm analytics/metrics dashboards show expected traffic.

@@ -1,37 +1,36 @@
-# Tasks
+# TASKS
 
-## Environment awareness (applies to all agents)
+## Global environment rules (all agents)
 
-- Respect `APP_ENV` for server behavior and `NEXT_PUBLIC_APP_ENV` for client behavior.
-- Use environment-specific base URLs and CORS rules.
-- Never hardcode production URLs or secrets into code or docs.
-- Prefer `.env.example` templates as the canonical list of required variables.
-- Document any new env variables in `/docs/environments.md` and relevant `.env.example` files.
+- Use **`APP_ENV`** (`local`, `staging`, `production`) for server-side environment checks.
+- Use **`NEXT_PUBLIC_APP_ENV`** for client-side environment cues.
+- Do not hardcode URLs; use env vars from templates.
+- Ensure staging/production are **DB-isolated** and never share secrets.
 
-## Agent 2 (Backend + Realtime)
+## Agent 2 — Backend + Realtime (environment-aware)
 
-- Ensure API behavior is gated by `APP_ENV` (local vs staging vs production).
-- Use `CORS_ORIGIN` and `SOCKET_IO_CORS_ORIGIN` for per-env CORS.
-- Database init/migrations must be safe for staging/production.
+- Read all configuration from env vars (see `apps/api/.env.example`).
+- Gate any local-only bootstrap logic with `APP_ENV=local`.
+- Use `CORS_ORIGIN` and `SOCKET_IO_CORS_ORIGIN` for CORS settings.
+- Log environment at startup (`APP_ENV`) but do not print secrets.
 
-## Agent 3 (Frontend)
+## Agent 3 — Frontend (environment-aware)
 
-- Use `NEXT_PUBLIC_APP_ENV` to indicate environment (e.g., banners).
-- Use `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL` for environment-specific endpoints.
-- Avoid calling localhost URLs outside local env.
+- Use `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_API_URL`, and `NEXT_PUBLIC_WS_URL`.
+- Show a **staging banner** when `NEXT_PUBLIC_APP_ENV=staging`.
+- Ensure the web app works without code changes across envs (build-time envs only).
 
-## Agent 4 (Infra/DevOps)
+## Agent 4 — Infra/DevOps (environment-aware)
 
-- Provide per-environment deployment configs and env templates.
-- Define staging/production CORS and domain settings.
-- Include explicit rollback and migration steps per env.
+- Provide staging + production env templates and CI/CD steps.
+- Ensure deployment plans include DB separation and CORS by env.
 
-## Agent 5 (UX/UI)
+## Agent 5 — UX/UI (environment-aware)
 
-- Provide UI guidance for environment indicators (e.g., staging banner).
-- Consider environment-specific behavior in UX flows.
+- Document staging banner and environment-specific UI cues.
+- Avoid references to localhost-only flows in final UX docs.
 
-## Agent 6 (Safety/Trust)
+## Agent 6 — Safety/Moderation (environment-aware)
 
-- Document environment differences for moderation tools (staging vs production).
-- Ensure any logging/retention policies are environment-aware.
+- Ensure logging/retention guidance distinguishes staging vs production.
+- Avoid storing PII in staging beyond what is needed for tests.

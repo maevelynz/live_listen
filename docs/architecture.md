@@ -2,28 +2,30 @@
 
 ## Overview
 
-LiveListen is split into a web client and an API server with shared contracts.
+LiveListen is composed of:
 
-- **Web**: Next.js app in `apps/web`
-- **API**: Node/Express app in `apps/api`
-- **Shared**: TypeScript types in `packages/shared`
+- **Web**: Next.js app in `apps/web`.
+- **API**: Node.js/Express + Socket.IO in `apps/api`.
+- **Shared contracts**: types and event contracts in `packages/shared`.
+- **Postgres**: primary datastore for users, rooms, chat, and playback state.
 
 ## Environment configuration strategy
 
-The application must be environment-aware across local, staging, and production.
+Environment configuration is standardized across the stack:
 
-### Server-side env (API)
+- `APP_ENV` identifies the runtime environment (`local`, `staging`, `production`).
+- `NEXT_PUBLIC_APP_ENV` mirrors `APP_ENV` for client-side behavior and badges.
+- API and Web read their env vars from `.env` files in local development.
+- Staging/production rely on hosting platform environment variables.
 
-- `APP_ENV` controls runtime behavior and feature toggles at the API layer.
-- Expected values: `local`, `staging`, `production`.
+### API
 
-### Client-side env (Web)
+The API uses `APP_ENV` for environment gating (e.g., local-only bootstrap or dev-only logging). It should always read connection and security settings from env vars.
 
-- `NEXT_PUBLIC_APP_ENV` is exposed to the browser for environment-specific UI cues.
-- Expected values: `local`, `staging`, `production`.
+### Web
 
-### Shared rules
+The web app reads `NEXT_PUBLIC_*` vars at build time. `NEXT_PUBLIC_APP_ENV` is used to drive UI cues (e.g., staging banner) and to select the correct API/WS endpoints.
 
-- All services must fail fast if required environment variables are missing.
-- Never expose secrets to the browser; only `NEXT_PUBLIC_*` variables are safe.
-- Use environment-specific `.env` templates as the source of truth.
+### Shared contracts
+
+Contracts are environment-agnostic and should not include env-specific defaults. Env-derived behavior should live at the application layer.
