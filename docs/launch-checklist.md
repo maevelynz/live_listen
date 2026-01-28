@@ -1,37 +1,24 @@
 # Launch Checklist
 
-## Staging smoke tests
+## Staging Smoke Tests
 
-Run after each staging deploy:
+- [ ] Web app loads at staging URL without errors.
+- [ ] API health check returns 200 (GET `/health`).
+- [ ] User can register and receive a token.
+- [ ] Create room succeeds and invite code is displayed.
+- [ ] Join room with invite code succeeds.
+- [ ] Presence list updates when a second user joins.
+- [ ] Chat messages send and receive in realtime.
+- [ ] Playback state syncs between two clients.
+- [ ] CORS and Socket.IO CORS allow staging web origin only.
 
-- ✅ API health: `GET /health` returns `{ ok: true, env: "staging" }`.
-- ✅ Auth: register/login flow works.
-- ✅ Room flow: create room, join by invite, list rooms.
-- ✅ Chat: send and receive realtime messages between two sessions.
-- ✅ Playback sync: host updates propagate to participants.
-- ✅ CORS: no browser console errors when connecting to API/Socket.
-- ✅ DB: write/read operations for rooms and messages succeed.
+## Production Gates
 
-## Production gates
-
-Must be satisfied before production release:
-
-### Release readiness
-
-- ✅ All staging smoke tests pass.
-- ✅ Release notes written and reviewed.
-- ✅ Monitoring/alerting configured (health checks + error rate).
-- ✅ Backup and PITR confirmed for production database.
-
-### Security & compliance
-
-- ✅ Secrets stored in the production secret manager.
-- ✅ CORS locked down to production web origin.
-- ✅ Rate limiting enabled.
-- ✅ Data retention policy documented and approved.
-
-### Rollback readiness
-
-- ✅ Prior release artifacts are available.
-- ✅ Rollback playbook is current and tested.
-- ✅ On-call owner assigned for release window.
+- [ ] All staging smoke tests pass within 24 hours.
+- [ ] Production secrets set in hosting provider (no plaintext files).
+- [ ] Database backups enabled and verified.
+- [ ] Error monitoring configured (logs, alerting, uptime checks).
+- [ ] Rate limits configured for production traffic.
+- [ ] Rollback plan verified (previous build redeploy).
+- [ ] GDPR/CCPA considerations reviewed (data retention and deletion).
+- [ ] Launch communication plan approved.
