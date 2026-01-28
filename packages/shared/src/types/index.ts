@@ -6,3 +6,4 @@ export * from './playback';
 export * from './moderation';
 export * from './discussion';
 export * from './errors';
+export * from './core';
